@@ -1,5 +1,5 @@
 class GroupsController < ApplicationController
-  before_action :authenticate_user!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :authenticate_user!, only: [:new, :create, :edit, :update, :destroy, :join, :quit]
 
   before_action :find_group_and_check_permission, only: [:edit, :update, :destroy]
 
@@ -41,7 +41,32 @@ class GroupsController < ApplicationController
     else
       render :new
     end
+  end
 
+  def join
+    @group = Group.find(params[:id])
+
+    if !current_user.is_member_of?(@group)
+      current_user.join!(@group)
+      flash[:notice] = "加入本讨论组成功!"
+    else
+      flash[:warning] = "你已经是群聊成员啦!"
+    end
+
+    redirect_to group_path(@group)
+  end
+
+  def quit
+    @group = Group.find(params[:id])
+
+    if current_user.is_member_of?(@group)
+      current_user.quit!(@group)
+      flash[:notice] = "退出本讨论组成功!"
+    else
+      flash[:warning] = "你本来就不是群聊成员啦!"
+    end
+
+    redirect_to group_path(@group)
   end
 
   private
